@@ -17,11 +17,11 @@ ToDate = Annotated[date, BeforeValidator(parse_date)]
 class Event(BaseModel):
     eventDate: ToDate
     eventTime: str
-    phase: int
-    desPhase: str
+    phase: Optional[str] = None
+    desPhase: Optional[str] = None
     colour: str
-    summaryText: str
-    extendedText: str
+    summaryText: Optional[str] = None
+    extendedText: Optional[str] = None
     actionWeb: str
     actionWebParam: str
     codired: str

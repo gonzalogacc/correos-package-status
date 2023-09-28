@@ -35,4 +35,4 @@ class Correos:
         if len(shipment.events) == 0:
             return None
         else:
-            return sorted(shipment.events, key=lambda x: x.eventDate)[0]
+            return sorted(shipment.events, key=lambda x: x.eventDate, reverse=True)[0]

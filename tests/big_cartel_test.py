@@ -11,7 +11,11 @@ def test_get_account_info():
 def test_get_orders():
     bcc = BigCartel()
     orders = bcc.get_orders(limit=20)
-    print(orders)
     for i, order in enumerate(orders):
-        print(i, order)
+        shipment = bcc.get_shipment(order['id'])
+        if len(shipment['data']) == 0 or shipment['data'][0]['attributes']['carrier'] != 'Correos (ES)':
+            continue
+        print(shipment)
+        tracking_number = shipment['data'][0]['attributes']['tracking_number']
+        print(i, order['id'], tracking_number)
     assert 1==1

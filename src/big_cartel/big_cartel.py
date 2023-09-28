@@ -8,7 +8,7 @@ import os
 
 from dotenv import load_dotenv
 
-from big_cartel.schema import BigCartelResponse, BigCartelAccount
+from src.big_cartel.schema import BigCartelResponse, BigCartelAccount
 
 load_dotenv()
 
@@ -19,6 +19,7 @@ PASSWORD = os.getenv('PASSWORD')
 class BigCartel:
     def __init__(self):
         self._http_client = self._get_http_client()
+        self.account_id = self.get_account_info().id
 
     def _get_http_client(self):
         creds_string = base64.urlsafe_b64encode(f"{USERNAME}:{PASSWORD}".encode("utf-8")).decode("utf-8")
@@ -40,9 +41,8 @@ class BigCartel:
 
     def _get_order_batch(self, link=None):
         params = {"sort": "-created_at"}
-        account_id = self.get_account_info().id
         if not link:
-            response = self._http_client.get(f'/v1/accounts/{account_id}/orders', params=params)
+            response = self._http_client.get(f'/v1/accounts/{self.account_id}/orders', params=params)
         else:
             parse_link = urlparse(link)
             response = self._http_client.get(parse_link.path)
@@ -64,10 +64,13 @@ class BigCartel:
         print("Recovered %s/%s orders --> N/A" % (len(orders), response['meta']['count']))
         return orders
 
-    def get_shipments(self, order_id: str):
-        return None
+    def get_shipment(self, order_id: str):
+        shipments = self._http_client.get(f'/v1/accounts/{self.account_id}/orders/{order_id}/shipments')
+        assert shipments.status_code == 200, "Error getting shipments"
+        return shipments.json()
 
 
 if __name__ == "__main__":
     bc = BigCartel()
     print(bc.get_orders(limit=20))
+    print(bc.get_shipment('RNPT-927138'))
