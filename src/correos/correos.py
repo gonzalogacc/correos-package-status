@@ -1,6 +1,6 @@
 import httpx
 
-from src.correos.schema import SearchResponse, PackeageNotFoundException, Shipment
+from correos.schema import SearchResponse, PackeageNotFoundException, Shipment
 
 
 class Correos:

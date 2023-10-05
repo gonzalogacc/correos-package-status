@@ -8,7 +8,7 @@ import os
 
 from dotenv import load_dotenv
 
-from src.big_cartel.schema import BigCartelResponse, BigCartelAccount
+from big_cartel.schema import BigCartelResponse, BigCartelAccount
 
 load_dotenv()
 
@@ -39,29 +39,24 @@ class BigCartel:
         assert len(response.data) == 1, "Found more than one account, not valid RN"
         return response.data[0]
 
-    def _get_order_batch(self, link=None):
-        params = {"sort": "-created_at"}
-        if not link:
-            response = self._http_client.get(f'/v1/accounts/{self.account_id}/orders', params=params)
-        else:
-            parse_link = urlparse(link)
-            response = self._http_client.get(parse_link.path)
-
+    def _get_order_batch(self, offset=0):
+        params = {"sort": "-created_at", "page[offset]": offset, "page[limit]": 50}
+        response = self._http_client.get(f'/v1/accounts/{self.account_id}/orders', params=params)
         assert response.status_code == 200, f"Cant get orders {response.text}"
         return response.json()
 
-    def get_orders(self, force_query=False, limit=100):
+    def get_orders(self, limit=100, offset=0):
 
-        response = self._get_order_batch()
+        response = self._get_order_batch(offset=offset)
         orders = response['data']
 
         while len(orders) < int(response['meta']['count']) and 'links' in response and 'next' in response['links'] and len(orders) < limit:
-            print("Recovered %s/%s orders --> %s" % (len(orders), response['meta']['count'], response['links']['next']))
-            response = self._get_order_batch(link=response['links']['next'])
+            print("Recovered %s/%s orders" % (len(orders), response['meta']['count']))
+            response = self._get_order_batch(offset=len(orders))
             orders.extend(response['data'])
             time.sleep(1)
 
-        print("Recovered %s/%s orders --> N/A" % (len(orders), response['meta']['count']))
+        print("Recovered %s/%s orders" % (len(orders), response['meta']['count']))
         return orders
 
     def get_shipment(self, order_id: str):
